@@ -15,7 +15,7 @@ export class BoardsController {
     }
 
     // 특정 게시글 조회 기능
-    @Get('/')
+    @Get('/:id')
     getBoardDetailById(@Param('id') id: number):Board {
         return this.boardsService.getBoardDetailById(id);
     }
