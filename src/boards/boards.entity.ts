@@ -4,6 +4,6 @@ export class Board {
     id: number;
     author: string;
     title: string;
-    content: string;
+    contents: string;
     status: BoardStatus
 }
