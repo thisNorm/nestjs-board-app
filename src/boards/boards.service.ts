@@ -37,4 +37,9 @@ export class BoardsService {
         const saveBoard = this.boards.push(board);
         return saveBoard;
     }
+
+
+    deleteBoardById(id: number): void {
+        this.boards = this.boards.filter((board) => board.id != id);
+    }
 }
