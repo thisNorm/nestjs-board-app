@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { Board } from './boards.entity';
 
 @Injectable()
 export class BoardsService {
+    // 데이터 베이스 
+    private boards: Board[] = [];
     
-    async hello(): Promise<string> {
-        return 'Hello from BoardsService';
+    // 게시글 조회 기능
+    getAllBoards(): Board[] {
+        return this.boards;
     }
 }
