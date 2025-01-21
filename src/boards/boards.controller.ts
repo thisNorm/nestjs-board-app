@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { BoardsService } from './boards.service';
 import { Board } from './boards.entity';
+import { CreateBoardDto } from './dto/create-board.dto';
 
 @Controller('api/boards')
 export class BoardsController {
@@ -22,11 +23,7 @@ export class BoardsController {
 
     // 게시글 작성 기능
     @Post('/')
-    createBoards(
-        @Body('author') author: string,
-        @Body('title') title: string,
-        @Body('contents') contents: string,
-    ) {
-        return this.boardsService.createBoard(author, title, contents);
+    createBoards(@Body() createBoardDto: CreateBoardDto) {
+        return this.boardsService.createBoard(createBoardDto);
     }
 }
