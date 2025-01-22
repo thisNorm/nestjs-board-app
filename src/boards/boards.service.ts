@@ -8,29 +8,41 @@ import { UpdateBoardDto } from './dto/update-board.to';
 export class BoardsService {
     // 데이터 베이스 
     private boards: Board[] = [];
-    
+
     // 게시글 조회 기능
     getAllBoards(): Board[] {
-        return this.boards;
+        const foundBoard = this.boards;
+        if (foundBoard.length === 0) {
+            throw new NotFoundException(`Board is not found`);
+        }
+        const visibleBoards = foundBoard.filter((board) => board.status !== 'PRIVATE');
+        return visibleBoards;
     }
 
     // 특정 게시글 조회 기능
     getBoardDetailById(id: number): Board {
         const foundBoard = this.boards.find((board) => board.id == id)
-        if(!foundBoard) {
+        if (!foundBoard) {
             throw new NotFoundException(`Board with ID ${id} not found`);
+        }
+        if (foundBoard.status === 'PRIVATE') {  
+            throw new NotFoundException(`Board with ID ${id} is private and cannot be accessed`);  
         }
         return foundBoard;
     }
 
     // 키워드(작성자)로 검색한 게시글 조회 기능
     getBoardsByKeyword(author: string): Board[] {
-        return this.boards.filter((board) => board.author === author)
+        const foundBoard = this.boards.filter((board) => board.author === author)
+        if (foundBoard.length === 0) {
+            throw new NotFoundException(`Board with AUTHOR ${author} not found`);
+        }
+        return foundBoard.filter((board) => board.status !== BoardStatus.PRIVATE);
     }
 
     // 게시글 작성 기능
     createBoard(createBoardDto: CreateBoardDto) {
-        const {author, title, contents} = createBoardDto;
+        const { author, title, contents } = createBoardDto;
 
         const board: Board = {
             id: this.boards.length + 1, // 임시 Auto Increament 기능
@@ -46,8 +58,8 @@ export class BoardsService {
     // 특정 번호의 게시글 수정
     updateBoardById(id: number, updateboardDto: UpdateBoardDto): Board {
         const foundBoard = this.getBoardDetailById(id);
-        const {title, contents} = updateboardDto;
-        
+        const { title, contents } = updateboardDto;
+
         foundBoard.title = title;
         foundBoard.contents = contents;
 
@@ -59,11 +71,25 @@ export class BoardsService {
         const foundBoard = this.getBoardDetailById(id);
         foundBoard.status = status;
         return foundBoard;
-        
     }
 
-
+    // 게시글 삭제
     deleteBoardById(id: number): void {
-        this.boards = this.boards.filter((board) => board.id != id);
+        const numericId = Number(id);
+        const foundBoard = this.boards.find((board) => board.id === numericId);
+        if (!foundBoard) {
+            throw new NotFoundException(`Board with ID ${numericId} not found`);
+        }
+        this.boards = this.boards.filter((board) => board.id != numericId);
     }
+
+    // deleteBoardById(id: number): void {  
+    // 느슨한 동등 비교 사용  
+    //     const foundBoard = this.boards.find((board) => board.id == id);
+    
+    //     if (!foundBoard) {  
+    //         throw new NotFoundException(`Board with ID ${id} not found`);  
+    //     }  
+    
+    //     this.boards = this.boards.filter((board) => board.id !== id);
 }
