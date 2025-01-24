@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, Matches } from "class-validator";
 
-export class createBoardDto {
+export class CreateBlogDto {
     @IsNotEmpty()
     @IsString()
     author: string;
