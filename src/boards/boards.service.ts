@@ -1,95 +1,92 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Board } from './boards.entity';
 import { BoardStatus } from './boards-status.enum';
-import { CreateBoardDto } from './dto/create-board.dto';
-import { UpdateBoardDto } from './dto/update-board.to';
+import { createBoardDto } from './dto/create-board.dto';
+import { UpdateBoardDto } from './dto/update-board.dto';
+import { BoardsRepository } from './boards.repository';
 
 @Injectable()
 export class BoardsService {
-    // 데이터 베이스 
-    private boards: Board[] = [];
+    // Repository 계층 DI 
+    constructor(private boardRepository: BoardsRepository) { }
 
-    // 게시글 조회 기능
-    getAllBoards(): Board[] {
-        const foundBoard = this.boards;
-        if (foundBoard.length === 0) {
-            throw new NotFoundException(`Board is not found`);
-        }
-        const visibleBoards = foundBoard.filter((board) => board.status !== 'PRIVATE');
-        return visibleBoards;
+    // 모든 게시글 조회 기능  
+    getAllBoards(): Promise<Board[]> {
+        const foundBoards = this.boardRepository.findAll(); // 모든 게시글을 가져옴  
+        return foundBoards;
     }
 
-    // 특정 게시글 조회 기능
-    getBoardDetailById(id: number): Board {
-        const foundBoard = this.boards.find((board) => board.id == id)
-        if (!foundBoard) {
-            throw new NotFoundException(`Board with ID ${id} not found`);
-        }
-        if (foundBoard.status === 'PRIVATE') {  
-            throw new NotFoundException(`Board with ID ${id} is private and cannot be accessed`);  
-        }
-        return foundBoard;
-    }
+    // // 특정 게시글 조회 기능  
+    // getBoardDetailById(id: number): Board {  
+    //     const foundBoard = this.boards.find((board) => board.id == id);  
+    //     if (!foundBoard) {  
+    //         throw new NotFoundException(`ID가 ${id}인 게시글을 찾을 수 없습니다.`);  
+    //     }  
+    //     return foundBoard;        
+    // }  
 
-    // 키워드(작성자)로 검색한 게시글 조회 기능
-    getBoardsByKeyword(author: string): Board[] {
-        const foundBoard = this.boards.filter((board) => board.author === author)
-        if (foundBoard.length === 0) {
-            throw new NotFoundException(`Board with AUTHOR ${author} not found`);
-        }
-        return foundBoard.filter((board) => board.status !== BoardStatus.PRIVATE);
-    }
+    // // 키워드(작성자)로 검색한 게시글 조회 기능  
+    // getBoardsByKeyword(author: string): Board[] {  
+    //     const foundBoards = this.boards.filter((board) => board.author === author);  
+    //     if (foundBoards.length === 0) {  
+    //         throw new NotFoundException(`작성자 ${author}의 게시글을 찾을 수 없습니다.`);  
+    //     }  
+    //     return foundBoards;  
+    // }  
 
     // 게시글 작성 기능
-    createBoard(createBoardDto: CreateBoardDto) {
+    async createBoard(createBoardDto: createBoardDto): Promise<string> {
         const { author, title, contents } = createBoardDto;
 
+        // // 유효성 검사  
+        if (!author || !title || !contents) {
+            throw new BadRequestException(`작성자, 제목, 그리고 내용을 모두 입력해야 합니다.`);
+        }
+
         const board: Board = {
-            id: this.boards.length + 1, // 임시 Auto Increament 기능
-            author,
+            id: 0, // 임시 초기화
+            author, // author : createBoardDto.author
             title,
             contents,
             status: BoardStatus.PUBLIC
         }
-        const saveBoard = this.boards.push(board);
-        return saveBoard;
+
+        const createBoard = await this.boardRepository.saveBoard(board);
+        return createBoard;
     }
 
-    // 특정 번호의 게시글 수정
-    updateBoardById(id: number, updateboardDto: UpdateBoardDto): Board {
-        const foundBoard = this.getBoardDetailById(id);
-        const { title, contents } = updateboardDto;
+    //     // 특정 번호의 게시글 수정  
+    //     updateBoardById(id: number, updateBoardDto: UpdateBoardDto): Board {  
+    //         const foundBoard = this.getBoardDetailById(id); // 게시글 존재 여부 확인  
+    //         const { title, contents } = updateBoardDto;  
 
-        foundBoard.title = title;
-        foundBoard.contents = contents;
+    //         if (!title || !contents) {  
+    //             throw new BadRequestException('제목과 내용을 모두 입력해야 합니다.');  
+    //         }  
 
-        return foundBoard;
-    }
+    //         foundBoard.title = title;  
+    //         foundBoard.contents = contents;  
 
-    // 특정 번호의 게시글 일부 수정
-    updateBoardStatusById(id: number, status: BoardStatus): Board {
-        const foundBoard = this.getBoardDetailById(id);
-        foundBoard.status = status;
-        return foundBoard;
-    }
+    //         return foundBoard;  
+    //     } 
 
-    // 게시글 삭제
-    deleteBoardById(id: number): void {
-        const numericId = Number(id);
-        const foundBoard = this.boards.find((board) => board.id === numericId);
-        if (!foundBoard) {
-            throw new NotFoundException(`Board with ID ${numericId} not found`);
-        }
-        this.boards = this.boards.filter((board) => board.id != numericId);
-    }
+    //     // 특정 번호의 게시글 일부 수정  
+    //     updateBoardStatusById(id: number, status: BoardStatus): Board {  
+    //         const foundBoard = this.getBoardDetailById(id); // 게시글 존재 여부 확인  
+    //         if (!foundBoard) {  
+    //             throw new NotFoundException(`ID가 ${id}인 게시글을 찾을 수 없습니다. 상태를 수정할 수 없습니다.`);  
+    //         }  
 
-    // deleteBoardById(id: number): void {  
-    // 느슨한 동등 비교 사용  
-    //     const foundBoard = this.boards.find((board) => board.id == id);
-    
-    //     if (!foundBoard) {  
-    //         throw new NotFoundException(`Board with ID ${id} not found`);  
+    //         foundBoard.status = status;  
+    //         return foundBoard;  
+    //     } 
+
+    //     // 게시글 삭제 기능  
+    //     deleteBoardById(id: number): void {  
+    //         const foundBoard = this.getBoardDetailById(id); // 게시글이 존재하는지 확인  
+    //         if (!foundBoard) {  
+    //             throw new NotFoundException(`ID가 ${id}인 게시글을 찾을 수 없습니다. 삭제할 수 없습니다.`);  
+    //         }  
+    //         this.boards = this.boards.filter((board) => board.id !== foundBoard.id);  
     //     }  
-    
-    //     this.boards = this.boards.filter((board) => board.id !== id);
 }
