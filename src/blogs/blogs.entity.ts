@@ -29,6 +29,6 @@ export class Blog {
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })  
     updatedAt: Date;          // 블로그 수정 날짜  
 
-    @OneToMany(() => Comment, comment => comment.blog) // 댓글과의 관계 설정  
+    @OneToMany(() => Comment, comment => comment.blog, { cascade: true }) // 댓글과의 관계 설정 및 cascade 추가  
     comments: Comment[];      // 댓글 배열  
 }
