@@ -1,136 +1,131 @@
-import { Injectable, NotFoundException } from '@nestjs/common';  
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';  
 import { Blog } from './blogs.entity';  
 import { BlogStatus } from './blogs-status.enum';  
 import { CreateBlogDto } from './dto/create-blog.dto';  
 import { UpdateBlogDto } from './dto/update-blog.dto';  
 import { Comment } from './comment.entity';  
 import { CreateCommentDto } from './dto/create-comment.dto';  
+import { InjectRepository } from '@nestjs/typeorm';  
+import { Repository } from 'typeorm';  
 
 @Injectable()  
 export class BlogsService {  
-    private blogs: Blog[] = []; // 블로그 배열  
-    private comments: Comment[] = []; // 댓글 배열  
-    private nextCommentId = 1; // 다음 댓글 ID   
+    constructor(  
+        @InjectRepository(Blog)  
+        private blogRepository: Repository<Blog>,  
 
-    // 블로그 조회 기능  
-    getAllBlogs(): Blog[] {  
-        if (this.blogs.length === 0) {  
+        @InjectRepository(Comment)  
+        private commentRepository: Repository<Comment>  
+    ) {}  
+
+    // 블로그 전체 조회  
+    async getAllBlogs(): Promise<Blog[]> {  
+        const blogs = await this.blogRepository.find();  
+        if (!blogs.length) {  
             throw new NotFoundException('No blogs found');  
         }  
-        return this.blogs.filter(blog => blog.status !== BlogStatus.PRIVATE);  
+        return blogs.filter(blog => blog.status !== BlogStatus.PRIVATE);  
     }  
 
-    // 특정 블로그 조회 기능  
-    getBlogDetailById(id: string): Blog {  // id를 string으로 받음  
-        const blogId = parseInt(id, 10); // 내부에서 변환  
-        const foundBlog = this.blogs.find(blog => blog.id === blogId);  
+    // 특정 블로그 조회  
+    async getBlogDetailById(id: number): Promise<Blog> {  
+        const foundBlog = await this.blogRepository.findOne({ where: { id } });  
+
         if (!foundBlog) {  
-            throw new NotFoundException(`Blog with ID ${blogId} not found`);  
+            throw new NotFoundException(`Blog with ID ${id} not found`);  
         }  
         if (foundBlog.status === BlogStatus.PRIVATE) {  
-            throw new NotFoundException(`Blog with ID ${blogId} is private and cannot be accessed`);  
+            throw new NotFoundException(`Blog with ID ${id} is private and cannot be accessed`);  
         }  
+
         return foundBlog;  
     }  
 
-    // 키워드(작성자)로 검색한 블로그 조회 기능  
-    getBlogsByKeyword(author: string): Blog[] {  
-        const foundBlogs = this.blogs.filter(blog => blog.author === author);  
-        if (foundBlogs.length === 0) {  
-            throw new NotFoundException(`No blogs found by AUTHOR ${author}`);  
+    // 작성자로 블로그 검색  
+    async getBlogsByKeyword(author: string): Promise<Blog[]> {  
+        if (!author) {  
+            throw new BadRequestException('작성자를 입력해야 합니다.');  
         }  
-        return foundBlogs.filter(blog => blog.status !== BlogStatus.PRIVATE);  
+
+        const foundBlogs = await this.blogRepository.findBy({ author });  
+        if (foundBlogs.length === 0) {  
+            throw new NotFoundException(`작성자 ${author}의 블로그를 찾을 수 없습니다.`);  
+        }  
+
+        return foundBlogs;  
     }  
 
-    // 블로그 작성 기능  
-    createBlog(createBlogDto: CreateBlogDto): Blog {  
-        const { author, title, contents } = createBlogDto;  
-
-        const blog: Blog = {  
-            id: this.blogs.length + 1, // Auto Increment  
-            author,  
-            title,  
-            contents,  
+    // 블로그 생성  
+    async createBlog(createBlogDto: CreateBlogDto): Promise<Blog> {  
+        const blog: Blog = this.blogRepository.create({  
+            ...createBlogDto,  
             status: BlogStatus.PUBLIC,  
             createdAt: new Date(),  
             updatedAt: new Date(),  
             comments: []  
-        };  
+        });  
 
-        this.blogs.push(blog); 
-        console.log('Current Blogs after addition:', this.blogs); // 추가 후 전체 블로그 출력  
-        return blog; // 성공적으로 생성된 블로그 반환  
+        return await this.blogRepository.save(blog);  
     }  
 
-    // 특정 번호의 블로그 수정  
-    updateBlogById(id: string, updateBlogDto: UpdateBlogDto): Blog { // id를 string으로 받음  
-        const blogId = parseInt(id, 10); // 내부에서 변환  
-        const foundBlog = this.getBlogDetailById(id);  
+    // 블로그 수정  
+    async updateBlogById(id: number, updateBlogDto: UpdateBlogDto): Promise<Blog> {  
+        const foundBlog = await this.getBlogDetailById(id);  
         const { title, contents } = updateBlogDto;  
+
+        if (!title || !contents) {  
+            throw new BadRequestException('제목과 내용을 모두 입력해야 합니다.');  
+        }  
 
         foundBlog.title = title;  
         foundBlog.contents = contents;  
         foundBlog.updatedAt = new Date();  
 
-        return foundBlog; // 수정된 블로그 반환  
+        return await this.blogRepository.save(foundBlog);  
     }  
 
-    // 특정 번호의 블로그 일부 수정  
-    updateBlogStatusById(id: string, status: BlogStatus): Blog { // id를 string으로 받음  
-        const blogId = parseInt(id, 10); // 내부에서 변환  
-        const foundBlog = this.getBlogDetailById(id);  
-        foundBlog.status = status;  
-        foundBlog.updatedAt = new Date();  
-
-        return foundBlog; // 수정된 블로그 반환  
-    }  
+    // 특정 번호의 게시글 일부 수정  
+    async updateBlogStatusById(id: number, status: BlogStatus): Promise<void> {
+        const result = await this.blogRepository.update(id, { status }); // 게시글 존재 여부 확인  
+        if (result.affected === 0) {
+            throw new NotFoundException(`ID가 ${id}인 게시글을 찾을 수 없습니다.`);
+        }
+    }
 
     // 블로그 삭제  
-    deleteBlogById(id: string): void { // id를 string으로 받음  
-        const blogId = parseInt(id, 10); // 내부에서 변환  
-
-        const foundBlogIndex = this.blogs.findIndex(blog => blog.id === blogId);  
-        if (foundBlogIndex === -1) {  
-            throw new NotFoundException(`Blog with ID ${blogId} not found`);  
-        }  
-        this.blogs.splice(foundBlogIndex, 1); // 블로그 삭제  
+    async deleteBlogById(id: number): Promise<void> {  
+        const foundBlog = await this.getBlogDetailById(id);  
+        await this.blogRepository.remove(foundBlog);  
     }  
 
-    // 댓글 추가 기능  
-    addComment(id: string, createCommentDto: CreateCommentDto): Comment {  
-        const blogId = parseInt(id, 10); // 내부에서 변환  
-        const foundBlog = this.blogs.find(blog => blog.id === blogId);  
+    // 댓글 추가  
+    async addComment(id: number, createCommentDto: CreateCommentDto): Promise<Comment> {  
+        const foundBlog = await this.blogRepository.findOne({ where: { id } });  
+
         if (!foundBlog) {  
-            console.log('Blog not found for ID:', blogId);  
-            throw new NotFoundException(`Blog with ID ${blogId} not found`);  
-        }   
-        const { text, author } = createCommentDto;  
-    
-        const comment: Comment = {  
-            id: this.nextCommentId++, // 다음 댓글 ID  
-            text,  
-            author,  
+            throw new NotFoundException(`Blog with ID ${id} not found`);  
+        }  
+        if (foundBlog.status === BlogStatus.PRIVATE) {  
+            throw new NotFoundException(`Cannot add comment to a private blog (ID: ${id})`);  
+        }  
+
+        const comment: Comment = this.commentRepository.create({  
+            ...createCommentDto,  
             blog: foundBlog,  
             createdAt: new Date(),  
-        };  
-    
-        this.comments.push(comment); // 댓글 추가  
-        console.log('Comment added:', comment); // 추가된 댓글 출력  
-        return comment; // 생성된 댓글 반환  
-    } 
+        });  
 
-    // 특정 블로그의 댓글 조회  
-    getCommentsForBlog(id: string): Comment[] {  
-        const blogId = parseInt(id, 10); // 내부에서 변환  
-        
-        const foundBlog = this.blogs.find(blog => blog.id === blogId);  
+        return await this.commentRepository.save(comment);  
+    }  
+
+    // 블로그 댓글 조회  
+    async getCommentsForBlog(id: number): Promise<Comment[]> {  
+        const foundBlog = await this.blogRepository.findOne({ where: { id } });  
+
         if (!foundBlog) {  
-            console.log('Blog not found for ID:', blogId); // 블로그가 없을 경우 출력  
-            throw new NotFoundException(`Blog with ID ${blogId} not found`);  
+            throw new NotFoundException(`Blog with ID ${id} not found`);  
         }  
-    
-        const commentsForBlog = this.comments.filter(comment => comment.blog.id === blogId); // 해당 블로그의 댓글 반환  
-        console.log('Comments for Blog ID:', blogId, commentsForBlog); // 댓글 목록 출력  
-        return commentsForBlog;   
-    }
+
+        return await this.commentRepository.find({ where: { blog: foundBlog } });  
+    }  
 }
