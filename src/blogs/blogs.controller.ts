@@ -5,72 +5,82 @@ import { CreateBlogDto } from './dto/create-blog.dto';
 import { BlogStatus } from './blogs-status.enum';  
 import { UpdateBlogDto } from './dto/update-blog.dto';  
 import { BlogStatusValidationPipe } from './pipes/blog-status-validation.pipe';  
-import { CreateCommentDto } from './dto/create-comment.dto'; // 댓글 DTO 추가  
-import { Comment } from './comment.entity'; // 댓글 엔티티 추가  
+import { CreateCommentDto } from './dto/create-comment.dto';  
+import { Comment } from './comment.entity';  
+import { BlogResponseDto } from './dto/blog-response.dto'; // 추가: 블로그 응답 DTO  
+import { BlogSearchResponseDto } from './dto/blog-search-response.dto'; // 추가: 블로그 검색 응답 DTO  
 
 @Controller('api/blogs')  
 @UsePipes(ValidationPipe)  
 export class BlogsController {  
     constructor(private blogsService: BlogsService) { }  
 
-    // 블로그 조회 기능  
+    // 모든 블로그를 조회하는 기능  
     @Get('/')  
-    getAllBlogs(): Blog[] {  
-        return this.blogsService.getAllBlogs();  
-    }  
+    async getAllBlogs(): Promise<BlogResponseDto[]> {  
+        const blogs: Blog[] = await this.blogsService.getAllBlogs();  
+        const blogsResponseDto = blogs.map(blog => new BlogResponseDto(blog));  
+        return blogsResponseDto;  
+    }   
 
-    // 특정 블로그 조회 기능  
+    // 특정 블로그를 ID로 조회하는 기능  
     @Get('/:id')  
-    getBlogDetailById(@Param('id') id: string): Blog {  // id를 string으로 받기  
-        return this.blogsService.getBlogDetailById(id);  // string을 그대로 전달  
+    async getBlogDetailById(@Param('id') id: number): Promise<BlogResponseDto> {  
+        const blogResponseDto = new BlogResponseDto(await this.blogsService.getBlogDetailById(id));  
+        return blogResponseDto;  
     }  
 
-    // 키워드(작성자)로 검색한 블로그 조회 기능  
+    // 작성자 키워드로 블로그를 검색하는 기능  
     @Get('/search')  
-    getBlogsByKeyword(@Query('author') author: string): Blog[] {  
-        return this.blogsService.getBlogsByKeyword(author);  
+    async getBlogsByKeyword(@Query('author') author: string): Promise<BlogSearchResponseDto[]> {  
+        const blogs: Blog[] = await this.blogsService.getBlogsByKeyword(author);  
+        const blogsResponseDto = blogs.map(blog => new BlogSearchResponseDto(blog));  
+        return blogsResponseDto;  
     }  
 
-    // 블로그 작성 기능  
+    // 블로그를 생성하는 기능  
     @Post('/')  
-    createBlogs(@Body() createBlogDto: CreateBlogDto) {  
-        return this.blogsService.createBlog(createBlogDto);  
+    async createBlogs(@Body() createBlogDto: CreateBlogDto): Promise<BlogResponseDto> {  
+        const blogResponseDto = new BlogResponseDto(await this.blogsService.createBlog(createBlogDto));  
+        return blogResponseDto;  
     }  
 
-    // 특정 번호의 블로그 수정  
+    // 특정 블로그를 ID로 수정하는 기능  
     @Put('/:id')  
-    updateBlogById(  
-        @Param('id') id: string,  // id를 string으로 받기  
-        @Body() updateBlogDto: UpdateBlogDto): Blog {  
-        return this.blogsService.updateBlogById(id, updateBlogDto);  
+    async updateBlogById(  
+        @Param('id') id: number,  
+        @Body() updateBlogDto: UpdateBlogDto): Promise<BlogResponseDto> {  
+        const blogResponseDto = new BlogResponseDto(await this.blogsService.updateBlogById(id, updateBlogDto));  
+        return blogResponseDto;  
     }  
 
-    // 특정 번호의 블로그 일부 수정  
-    @Patch('/:id')  
-    updateBlogStatusById(  
-        @Param('id') id: string,  
-        @Body('status', BlogStatusValidationPipe) status: BlogStatus): Blog {  
-        return this.blogsService.updateBlogStatusById(id, status);  
-    }  
-
-    // 블로그 삭제 기능  
-    @Delete('/:id')  
-    deleteBlogById(@Param('id') id: string): void {  // id를 string으로 받기  
-        this.blogsService.deleteBlogById(id);  
-    }  
-
-    // 댓글 추가 기능  
-    @Post('/:id/comments')  
-    addComment(  
-        @Param('id') blogId: string,  
-        @Body() createCommentDto: CreateCommentDto  
-    ): Comment {  
-        return this.blogsService.addComment(blogId, createCommentDto);  
+    // 특정 번호의 게시글 일부 수정
+    @Patch('/:id')
+    async updateBoardStatusById(
+        @Param('id') id: number,
+        @Body('status', BlogStatusValidationPipe )status: BlogStatus): Promise<void>{
+        await this.blogsService.updateBlogStatusById(id,status);
     }
 
-    // 특정 블로그의 댓글 조회 기능  
+
+    // 특정 블로그를 삭제하는 기능  
+    @Delete('/:id')  
+    async deleteBlogById(@Param('id') id: number): Promise<void> {  
+        await this.blogsService.deleteBlogById(id);  
+    }  
+
+    // 특정 블로그에 댓글을 추가하는 기능  
+    @Post('/:id/comments')  
+    async addComment(  
+        @Param('id') blogId: number,  
+        @Body() createCommentDto: CreateCommentDto  
+    ): Promise<Comment> {  
+        return this.blogsService.addComment(blogId, createCommentDto);  
+    }  
+
+    // 특정 블로그의 댓글을 조회하는 기능  
     @Get('/:id/comments')  
-    getCommentsForBlog(@Param('id') blogId: string): Comment[] {  // blogId를 string으로 받기  
-        return this.blogsService.getCommentsForBlog(blogId);  // string을 그대로 전달  
+    async getCommentsForBlog(@Param('id') blogId: number): Promise<Comment[]> {  
+        return this.blogsService.getCommentsForBlog(blogId);  
     }  
 }
