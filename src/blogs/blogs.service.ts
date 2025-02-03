@@ -5,15 +5,23 @@ import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';  
 import { Comment } from './comment.entity';  
 import { CreateCommentDto } from './dto/create-comment.dto';  
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()  
 export class BlogsService {  
-    private blogs: Blog[] = []; // 블로그 배열  
-    private comments: Comment[] = []; // 댓글 배열  
-    private nextCommentId = 1; // 다음 댓글 ID   
+    private nextCommentId = 1; // 다음 댓글 ID  
+   
+    constructor(  
+        @InjectRepository(Blog)  
+        private blogRepository: Repository<Blog>,  
+        
+        @InjectRepository(Comment)  
+        private commentRepository: Repository<Comment>  
+    ) {}  
 
     // 블로그 조회 기능  
-    getAllBlogs(): Blog[] {  
+    async getAllBlogs(): Promise<Blog[]> {  
         if (this.blogs.length === 0) {  
             throw new NotFoundException('No blogs found');  
         }  
@@ -21,7 +29,7 @@ export class BlogsService {
     }  
 
     // 특정 블로그 조회 기능  
-    getBlogDetailById(id: string): Blog {  // id를 string으로 받음  
+    async getBlogDetailById(id: string): Blog {  // id를 string으로 받음  
         const blogId = parseInt(id, 10); // 내부에서 변환  
         const foundBlog = this.blogs.find(blog => blog.id === blogId);  
         if (!foundBlog) {  
@@ -34,7 +42,7 @@ export class BlogsService {
     }  
 
     // 키워드(작성자)로 검색한 블로그 조회 기능  
-    getBlogsByKeyword(author: string): Blog[] {  
+    async getBlogsByKeyword(author: string): Blog[] {  
         const foundBlogs = this.blogs.filter(blog => blog.author === author);  
         if (foundBlogs.length === 0) {  
             throw new NotFoundException(`No blogs found by AUTHOR ${author}`);  
@@ -43,7 +51,7 @@ export class BlogsService {
     }  
 
     // 블로그 작성 기능  
-    createBlog(createBlogDto: CreateBlogDto): Blog {  
+    async createBlog(createBlogDto: CreateBlogDto): Blog {  
         const { author, title, contents } = createBlogDto;  
 
         const blog: Blog = {  
@@ -63,7 +71,7 @@ export class BlogsService {
     }  
 
     // 특정 번호의 블로그 수정  
-    updateBlogById(id: string, updateBlogDto: UpdateBlogDto): Blog { // id를 string으로 받음  
+    async updateBlogById(id: string, updateBlogDto: UpdateBlogDto): Blog { // id를 string으로 받음  
         const blogId = parseInt(id, 10); // 내부에서 변환  
         const foundBlog = this.getBlogDetailById(id);  
         const { title, contents } = updateBlogDto;  
@@ -76,7 +84,7 @@ export class BlogsService {
     }  
 
     // 특정 번호의 블로그 일부 수정  
-    updateBlogStatusById(id: string, status: BlogStatus): Blog { // id를 string으로 받음  
+    async updateBlogStatusById(id: string, status: BlogStatus): Blog { // id를 string으로 받음  
         const blogId = parseInt(id, 10); // 내부에서 변환  
         const foundBlog = this.getBlogDetailById(id);  
         foundBlog.status = status;  
@@ -86,7 +94,7 @@ export class BlogsService {
     }  
 
     // 블로그 삭제  
-    deleteBlogById(id: string): void { // id를 string으로 받음  
+    async deleteBlogById(id: string): void { // id를 string으로 받음  
         const blogId = parseInt(id, 10); // 내부에서 변환  
 
         const foundBlogIndex = this.blogs.findIndex(blog => blog.id === blogId);  
@@ -97,7 +105,7 @@ export class BlogsService {
     }  
 
     // 댓글 추가 기능  
-    addComment(id: string, createCommentDto: CreateCommentDto): Comment {  
+    async addComment(id: string, createCommentDto: CreateCommentDto): Comment {  
         const blogId = parseInt(id, 10); // 내부에서 변환  
         const foundBlog = this.blogs.find(blog => blog.id === blogId);  
         if (!foundBlog) {  
@@ -120,7 +128,7 @@ export class BlogsService {
     } 
 
     // 특정 블로그의 댓글 조회  
-    getCommentsForBlog(id: string): Comment[] {  
+    async getCommentsForBlog(id: string): Comment[] {  
         const blogId = parseInt(id, 10); // 내부에서 변환  
         
         const foundBlog = this.blogs.find(blog => blog.id === blogId);  
