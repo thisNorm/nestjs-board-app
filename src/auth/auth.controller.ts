@@ -13,4 +13,11 @@ export class AuthController {
         const userResponseDto = new UserResponseDto(await this.authService.createUser(createUserDto))
         return userResponseDto;
     }
+
+    // 로그인 기능
+    @Post('/siginin')
+    async signIn(@Body() loginUserDto: LoginUserDto): Promise<string> {
+        const message = this.AuthService.signIn(loginUserDto);
+        return message;
+    }
 }
