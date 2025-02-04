@@ -10,7 +10,6 @@ import { BoardResponseDto } from './dto/board-response.dto';
 import { BoardSearchResponseDto } from './dto/board-search-response.dto';
 
 @Controller('api/boards')
-@UsePipes(ValidationPipe)
 export class BoardsController {
     // 생성자 주입
     constructor(private boardsService :BoardsService){}
