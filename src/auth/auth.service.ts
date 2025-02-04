@@ -12,12 +12,15 @@ export class AuthService {
         private userRepository: Repository<User>,
     ) { }
 
-    // 회원 가입입 기능
+    // 회원 가입 기능
     async createUser(createUserDto: createUserDto): Promise<User> {
         const { username, password, email, role } = createUserDto;
         if (!username || !password || !email || !role) {
             throw new BadRequestException(`Something went wrong.`);
         }
+
+        await this.checkEmailExist(email);
+
         const newUser: User = {
             id: 0, // 임시 초기화
             username, // author : createBoardDto.author
@@ -27,5 +30,12 @@ export class AuthService {
         }
         const createUser = await this.userRepository.save(newUser);
         return createUser;
+    }
+
+    async checkEmailExist(email: string): Promise<void> {
+        const existingUser = await this.userRepository.findOne({ where: ( email )});
+        if(existingUser) {
+            throw new ConflictException('Email already exists');
+        }
     }
 }
