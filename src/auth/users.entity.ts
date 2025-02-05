@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
 import { UserRole } from "./users-role.enum";
+import { Board } from "src/boards/boards.entity";
 
 @Entity()
 export class User {
@@ -17,4 +18,7 @@ export class User {
     
     @Column()
     role: UserRole;
+
+    @OneToMany(Type => Board, board => board.author, { eager: false })
+    boards: Board[];
 }
