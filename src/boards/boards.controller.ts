@@ -83,8 +83,9 @@ export class BoardsController {
 
     // 게시글 삭제 기능
     @Delete('/:id')
-    async deleteBoardById(@Param('id')id: number): Promise<void> {
-        await this.boardsService.deleteBoardById(id);
+    @Roles(UserRole.USER, UserRole.ADMIN) //  로그인 유저가 USER만 접근 가능
+    async deleteBoardById(@Param('id')id: number, @GetUser() loginedUser: User): Promise<void> {
+        await this.boardsService.deleteBoardById(id, loginedUser);
     }
 
 }
