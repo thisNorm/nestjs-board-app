@@ -1,21 +1,26 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { BoardsService } from './boards.service';
 import { Board } from './boards.entity';
-import { title } from 'process';
 import { createBoardDto } from './dto/create-board.dto';
 import { BoardStatus } from './boards-status.enum';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { BoardStatusValidationPipe } from './pipes/board-status-validation.pipe';
 import { BoardResponseDto } from './dto/board-response.dto';
 import { BoardSearchResponseDto } from './dto/board-search-response.dto';
+import { RolesGuard } from 'src/auth/custom-role.guard';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from 'src/auth/roles.decorator';
+import { UserRole } from 'src/auth/users-role.enum';
 
 @Controller('api/boards')
+@UseGuards(AuthGuard(), RolesGuard)
 export class BoardsController {
     // 생성자 주입
     constructor(private boardsService :BoardsService){}
     
     // 게시글 조회 기능 
     @Get('/')
+    @Roles(UserRole.USER) // 로그인유저가 USER만 접근 가능
     async getAllBoards(): Promise<BoardResponseDto[]> {
         const boards: Board[] = await this.boardsService.getAllBoards();
         const boardsResponseDto = boards.map(board => new BoardResponseDto(board));
