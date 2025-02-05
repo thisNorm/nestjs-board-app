@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -23,15 +23,10 @@ export class AuthController {
     async signIn(@Body() loginUserDto: LoginUserDto, @Res() res:Response): Promise<void> {
         const accessToken = await this.AuthService.signIn(loginUserDto);
 
-        // [2] JWT를 쿠키에 저장
-        res.cookie('Authorization', accessToken, {
-            httpOnly: true,
-            secure: false,
-            maxAge: 360000,
-            sameSite: 'none'
-        });
+        // [2] JWT를 헤더에 저장
+        res.setHeader('Authorization', accessToken);
         
-        res.send({message: "Login Success"});
+        res.send({message: "Login Success", accessToken});
     }
 
     @Post('/test')
