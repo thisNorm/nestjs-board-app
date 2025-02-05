@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { BoardsService } from './boards.service';
 import { Board } from './boards.entity';
-import { createBoardDto } from './dto/create-board.dto';
+import { CreateBoardDto } from './dto/create-board.dto';
 import { BoardStatus } from './boards-status.enum';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { BoardStatusValidationPipe } from './pipes/board-status-validation.pipe';
@@ -46,7 +46,7 @@ export class BoardsController {
 
     // 게시글 작성 기능
     @Post('/')
-    async createBoards(@Body() createBoardDto: createBoardDto): Promise<BoardResponseDto> {
+    async createBoards(@Body() createBoardDto: CreateBoardDto): Promise<BoardResponseDto> {
         const boardResponseDto = new BoardResponseDto(await this.boardsService.createBoard(createBoardDto))
         return boardResponseDto;
     }

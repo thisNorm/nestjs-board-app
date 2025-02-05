@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Board } from './boards.entity';
 import { BoardStatus } from './boards-status.enum';
-import { createBoardDto } from './dto/create-board.dto';
+import { CreateBoardDto } from './dto/create-board.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
 import { UpdateBoardDto } from './dto/update-board.dto';
@@ -42,7 +42,7 @@ export class BoardsService {
     }
 
     // 게시글 작성 기능
-    async createBoard(createBoardDto: createBoardDto): Promise<Board> {
+    async createBoard(createBoardDto: CreateBoardDto): Promise<Board> {
         const { author, title, contents } = createBoardDto;
         // // 유효성 검사  
         if (!author || !title || !contents) {
