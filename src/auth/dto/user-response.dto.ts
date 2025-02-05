@@ -1,4 +1,5 @@
-import { Board } from "../boards.entity";
+import { UserRole } from "../users-role.enum";
+import { User } from "../users.entity";
 
 export class UserResponseDto{
     email: string;
