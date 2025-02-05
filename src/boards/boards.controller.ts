@@ -28,6 +28,15 @@ export class BoardsController {
         const boardsResponseDto = boards.map(board => new BoardResponseDto(board));
         return boardsResponseDto;
     }
+    
+    // 나의 게시글 조회 기능(로그인 유저)
+    @Get('/myboards')
+    @Roles(UserRole.USER) // 로그인유저가 USER만 접근 가능
+    async getMyAllBoards(@GetUser() loginedUser: User): Promise<BoardResponseDto[]> {
+        const boards: Board[] = await this.boardsService.getMyAllBoards(loginedUser);
+        const boardsResponseDto = boards.map(board => new BoardResponseDto(board));
+        return boardsResponseDto;
+    }
 
 
     // 특정 게시글 조회 기능 
