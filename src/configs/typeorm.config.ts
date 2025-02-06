@@ -12,6 +12,6 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   port: Number(process.env.DB_PORT),
   database: process.env.DB_NAME,
   entities: [__dirname + '/../**/*.entity.{js,ts}'],
-  synchronize: true, // 개발중에만 true로 설정
-  logging: true, // SQL 로그가 출력
+  synchronize: true,
+  logging: true,
 };
