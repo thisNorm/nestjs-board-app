@@ -19,6 +19,6 @@ export class Article {
     @Column()
     status: ArticleStatus
 
-    @ManyToOne(Type => User, user => user.articles, { eager: false })
+    @ManyToOne(Type => User, user => user.article, { eager: false })
     user: User;
 }

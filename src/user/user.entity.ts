@@ -1,10 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { UserRole } from "./user-role.enum";
 import { Article } from "src/article/article.entity";
 
 @Entity()
 export class User {
-    @PrimaryColumn()
+    @PrimaryGeneratedColumn()
     id: number;
 
     @Column()
@@ -20,5 +20,5 @@ export class User {
     role: UserRole;
 
     @OneToMany(Type => Article, article => article.author, { eager: false })
-    articles: Article[];
+    article: Article[];
 }
