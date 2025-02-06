@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
-import { UserRole } from "./users-role.enum";
-import { Board } from "src/boards/boards.entity";
+import { UserRole } from "./user-role.enum";
+import { Article } from "src/article/article.entity";
 
 @Entity()
 export class User {
@@ -9,16 +9,16 @@ export class User {
 
     @Column()
     username: string;
-    
+
     @Column()
     password: string;
-    
-    @Column({unique: true})
+
+    @Column({ unique: true })
     email: string;
-    
+
     @Column()
     role: UserRole;
 
-    @OneToMany(Type => Board, board => board.author, { eager: false })
-    boards: Board[];
+    @OneToMany(Type => Article, article => article.author, { eager: false })
+    articles: Article[];
 }

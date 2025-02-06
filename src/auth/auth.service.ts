@@ -1,8 +1,8 @@
 import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './users.entity';
+import { User } from './user.entity';
 import { Repository } from 'typeorm';
-import { UserRole } from './users-role.enum';
+import { UserRole } from './user-role.enum';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcryptjs'
 import { LoginUserDto } from './dto/login-user.dto';
@@ -65,7 +65,7 @@ export class AuthService {
                 role: existingUser.role
             };
             const accessToken = await this.jwtService.sign(payload);
-        
+
             this.logger.verbose(`User with email: ${loginUserDto.email} issued JWT ${accessToken}`);
             return accessToken;
         } catch (error) {

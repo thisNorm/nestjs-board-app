@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { BoardsModule } from './boards/boards.module';
+import { ArticleModule } from './article/article.module';
 import { BlogsModule } from './blogs/blogs.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './configs/typeorm.config';
 import { AuthModule } from './auth/auth.module';
 import { GlobalMoudle } from './global.module';
 import { APP_FILTER } from '@nestjs/core';
-import { UnauthorizedExceptionFilter } from './common/interceptors/unauthorization.filter';
+import { UnauthorizedExceptionFilter } from './common/filter/unauthorization.filter';
 import { loggingInterceptor } from './common/interceptors/logging.interceptor';
 
 
@@ -14,7 +14,7 @@ import { loggingInterceptor } from './common/interceptors/logging.interceptor';
   imports: [
     GlobalMoudle,
     TypeOrmModule.forRoot(typeOrmConfig),
-    BoardsModule,
+    ArticleModule,
     BlogsModule,
     AuthModule
   ],

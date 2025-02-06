@@ -1,12 +1,12 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
-import { UserRole } from "./users-role.enum";
+import { UserRole } from "./user-role.enum";
 import { Reflector } from "@nestjs/core";
-import { User } from "./users.entity";
+import { User } from "./user.entity";
 import { ROLES_KEY } from "./roles.decorator";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-    constructor(private reflector: Reflector) {}
+    constructor(private reflector: Reflector) { }
 
     canActivate(context: ExecutionContext): boolean {
         // 핸들러 메서드 또는 클래스 자체에 설정된 역할 가져오기

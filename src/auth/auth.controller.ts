@@ -6,7 +6,7 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from './get-user.decorator';
-import { User } from './users.entity';
+import { User } from './user.entity';
 @Controller('api/auth')
 export class AuthController {
     private readonly logger = new Logger(AuthController.name);
