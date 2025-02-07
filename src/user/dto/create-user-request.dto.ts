@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsEnum, IsString, Matches, MaxLength, MinLength, IsEmail } from "class-validator";
-import { UserRole } from "../user-role.enum";
+import { UserRole } from "../entities/user-role.enum";
 
 export class CreateUserRequestDto {
     @IsNotEmpty()

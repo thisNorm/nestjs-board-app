@@ -1,20 +1,20 @@
 import { BadRequestException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { Article } from './article.entity';
-import { ArticleStatus } from './article-status.enum';
+import { Article } from './entities/article.entity';
+import { ArticleStatus } from './entities/article-status.enum';
 import { CreateArticleRequestDto } from './dto/create-article-request.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UpdateArticleRequestDto } from './dto/update-article-request.dto';
-import { User } from 'src/user/user.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
-export class ArticleService {
-    private readonly logger = new Logger(ArticleService.name);
+export class ArticlesService {
+    private readonly logger = new Logger(ArticlesService.name);
 
     constructor(
         @InjectRepository(Article)
-        private articleRepository : Repository<Article>
-    ){}
+        private articleRepository: Repository<Article>
+    ) { }
 
     // CREATE
     async createArticle(createArticleRequestDto: CreateArticleRequestDto, logginedUser: User): Promise<Article> {
@@ -25,7 +25,7 @@ export class ArticleService {
             throw new BadRequestException('Title, and contents must be provided');
         }
         const newArticle = this.articleRepository.create({
-            author: logginedUser.username, 
+            author: logginedUser.username,
             title,
             contents,
             status: ArticleStatus.PUBLIC,
@@ -54,7 +54,7 @@ export class ArticleService {
 
         const foundArticles = await this.articleRepository.createQueryBuilder('article')
             .leftJoinAndSelect('article.user', 'user')
-            .where('article.userId = :userId', { userId : logginedUser.id })
+            .where('article.userId = :userId', { userId: logginedUser.id })
             .getMany();
 
         this.logger.verbose(`Retrieved ${logginedUser.username}'s all Articles list Successfully`);
@@ -93,7 +93,7 @@ export class ArticleService {
         this.logger.verbose(`Retrieved articles list by ${author} Successfully`);
         return foundArticles;
     }
-    
+
     // UPDATE - by id
     async updateArticleById(id: number, updateArticleRequestDto: UpdateArticleRequestDto): Promise<Article> {
         this.logger.verbose(`Updating a article by id: ${id} with updateArticleRequestDto`);
