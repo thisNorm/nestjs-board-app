@@ -5,15 +5,15 @@ import { CreateArticleRequestDto } from './dto/create-article-request.dto';
 import { ArticleResponseDto } from './dto/article-response.dto';
 import { SearchArticleResponseDto } from './dto/search-article-response.dto';
 import { UpdateArticleRequestDto } from './dto/update-article-request.dto';
-import { ArticleStatusValidationPipe } from './pipes/article-status-validation.pipe';
 import { ArticleStatus } from './entities/article-status.enum';
 import { AuthGuard } from '@nestjs/passport';
-import { RolesGuard } from 'src/auth/custom-role.guard';
-import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/custom-guards-decorators/custom-role.guard';
+import { Roles } from 'src/auth/custom-guards-decorators/roles.decorator';
 import { UserRole } from 'src/user/entities/user-role.enum';
-import { GetUser } from 'src/auth/get-user.decorator';
+import { GetUser } from 'src/auth/custom-guards-decorators/get-user.decorator';
 import { User } from 'src/user/entities/user.entity';
 import { ApiResponseDto } from 'src/common/api-response-dto/api-response.dto';
+import { ArticleStatusValidationPipe } from 'src/common/pipes/article-status-validation.pipe';
 
 @Controller('api/articles')
 @UseGuards(AuthGuard(), RolesGuard)
