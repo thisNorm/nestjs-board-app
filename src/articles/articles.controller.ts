@@ -16,7 +16,7 @@ import { ApiResponseDto } from 'src/common/api-response-dto/api-response.dto';
 import { ArticleStatusValidationPipe } from 'src/common/pipes/article-status-validation.pipe';
 
 @Controller('api/articles')
-@UseGuards(AuthGuard(), RolesGuard)
+// @UseGuards(AuthGuard(), RolesGuard)
 export class ArticlesController {
     private readonly logger = new Logger(ArticlesController.name);
 
@@ -37,7 +37,7 @@ export class ArticlesController {
 
     // READ - all
     @Get('/')
-    @Roles(UserRole.USER)
+    // @Roles(UserRole.USER)
     async getAllArticles(): Promise<ApiResponseDto<ArticleResponseDto[]>> {
         this.logger.verbose(`Try to Retrieving all Articles`);
 
